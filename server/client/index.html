@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="background.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { rgb(187, 187, 187); font: 13px Helvetica, Arial; }
+      #chatbody { overflow-y: scroll; overflow-x:hidden; overflow-y: auto; padding: 1px 0px; height:85%; width:100%; position: fixed; }
+      form { background: #000; padding: 3px; position: absolute; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 86%; margin-right: 0.5%; background:grey; }
+      form button { width: 13%; background: rgb(22, 85, 7); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { color: white; padding: 5px 10px; }
+      #onlineusers { color:chartreuse; text-align:right; position: relative;}
+      @import url('https://fonts.googleapis.com/css?family=Lobster&display=swap') repeat scroll 0 0 rgba(0, 0, 0 , 0);
+    </style>
+  </head>
+  <body class="wrapper">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    
+    <script>
+    Notification.requestPermission(); // ask for push notification permission 
+    var audio = new Audio('/sound.mp3'); // get the audio
+    var c = 0;
+    setInterval(() =>{ // scroll at the end only when receiving a new message
+     if (c !== document.getElementById("chatbody").scrollHeight) {
+      a = document.getElementById("chatbody");
+      c = a.scrollHeight;
+      a.scrollTop = c;
+     }
+    },100);
+
+    $(function () {
+     var person = prompt("Please enter a nickname");
+     var socket = io();
+     socket.emit('new user', person);
+    $('form').submit(function(e){
+      e.preventDefault(); // prevents page reloading
+      socket.emit('chat message', $('#m').val());
+      $('#m').val('');
+      return false;
+    });
+
+    socket.on('chat message', function(msg){
+      $('#messages').append($('<li>').text(msg));
+      audio.play(); // play audio when a new message received
+      // new Notification(msg); // send message via notification
+    });
+
+    socket.on('active users', (users) => {
+      document.getElementById("onlineusers").innerText = `OnlineUsers: ${users}`; // update "onlineusers" element
+    });
+    
+    setInterval(() => { 
+      socket.emit('active users', ''); // ask server for online users
+      }, 500)
+    });
+
+    </script>
+
+    <div id="chatbody">
+        <h4 id="onlineusers">OnlineUsers: #</h4>
+    <ul id="messages"></ul>
+    </div>
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+  </body>
+</html>
