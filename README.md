@@ -5,7 +5,7 @@ A websocket chat made with socket.io and express.io
 Use the package manager [npm](https://www.npmjs.com/get-npm) to install socket and express.
 
 ```bash
-npm i socket.io socket.io
+npm i socket.io express.io
 ```
 ## Usage
 ```bash
